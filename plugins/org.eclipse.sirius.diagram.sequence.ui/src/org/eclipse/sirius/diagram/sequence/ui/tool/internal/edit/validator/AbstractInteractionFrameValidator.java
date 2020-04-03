@@ -17,6 +17,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.gef.requests.ChangeBoundsRequest;
@@ -32,9 +36,7 @@ import org.eclipse.sirius.diagram.sequence.business.internal.layout.LayoutConsta
 import org.eclipse.sirius.diagram.sequence.ui.tool.internal.util.RequestQuery;
 import org.eclipse.sirius.diagram.sequence.util.Range;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -88,13 +90,13 @@ public abstract class AbstractInteractionFrameValidator {
     /**
      * Not in moved elements.
      */
-    protected final Predicate<ISequenceEvent> unmoved = Predicates.not(Predicates.in(movedElements));
+    protected final Predicate<ISequenceEvent> unmoved = e -> !movedElements.contains(e);
 
     private boolean initialized;
 
     private final Collection<Integer> invalidPositions = new ArrayList<>();
 
-    private Predicate<Object> unMove = Predicates.instanceOf(Lifeline.class);
+    private Predicate<Object> unMove = Lifeline.class::isInstance;
 
     private Predicate<Object> invalidParents;
 
@@ -135,9 +137,7 @@ public abstract class AbstractInteractionFrameValidator {
         this.frame = frame;
         this.requestQuery = requestQuery;
         this.valid = false;
-
-        this.invalidParents = Predicates.or(Predicates.instanceOf(AbstractFrame.class), Predicates.instanceOf(State.class));
-
+        this.invalidParents = o -> o instanceof AbstractFrame || o instanceof State;
     }
 
     /**
@@ -168,7 +168,7 @@ public abstract class AbstractInteractionFrameValidator {
         if (valid) {
             Collection<ISequenceEvent> finalParents = getFinalParentsWithAutoExpand();
 
-            Collection<ISequenceEvent> movableParents = Lists.newArrayList(Iterables.filter(finalParents, Predicates.not(unMove)));
+            Collection<ISequenceEvent> movableParents = finalParents.stream().filter(Predicate.not(unMove)).collect(Collectors.toList());
             Collection<ISequenceEvent> fixedParents = Lists.newArrayList(Iterables.filter(finalParents, unMove));
             if (movableParents.isEmpty() || !movedElements.containsAll(movableParents)) {
 
@@ -261,7 +261,7 @@ public abstract class AbstractInteractionFrameValidator {
     private boolean checkLocalSiblings(Collection<ISequenceEvent> finalParents) {
         boolean okForSiblings = true;
         for (ISequenceEvent localParent : finalParents) {
-            for (ISequenceEvent localSibling : Iterables.filter(localParent.getSubEvents(), unmoved)) {
+            for (ISequenceEvent localSibling : localParent.getSubEvents().stream().filter(unmoved)) {
                 if (frame.equals(localSibling)) {
                     continue;
                 }

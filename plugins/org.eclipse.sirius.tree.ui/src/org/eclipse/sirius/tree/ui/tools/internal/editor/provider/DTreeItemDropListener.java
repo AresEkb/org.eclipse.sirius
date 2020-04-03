@@ -15,12 +15,15 @@ package org.eclipse.sirius.tree.ui.tools.internal.editor.provider;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.command.CompoundCommand;
@@ -54,7 +57,6 @@ import org.eclipse.sirius.viewpoint.description.tool.ToolPackage;
 import org.eclipse.swt.dnd.DropTargetListener;
 import org.eclipse.swt.dnd.TransferData;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
 /**
@@ -497,21 +499,20 @@ public class DTreeItemDropListener extends ViewerDropAdapter implements DropTarg
     }
 
     private Iterable<TreeItemContainerDropTool> getDropTools(final TreeDragSource dragSource) {
-        Predicate<TreeItemContainerDropTool> checkedDragSource = new Predicate<TreeItemContainerDropTool>() {
-            @Override
-            public boolean apply(TreeItemContainerDropTool input) {
-                return input.getDragSource() == TreeDragSource.BOTH || input.getDragSource() == dragSource;
-            }
+        Predicate<TreeItemContainerDropTool> checkedDragSource = (TreeItemContainerDropTool input) -> {
+            return input.getDragSource() == TreeDragSource.BOTH || input.getDragSource() == dragSource;
         };
 
-        Collection<TreeItemContainerDropTool> availableTools = new ArrayList<>();
+        final Collection<TreeItemContainerDropTool> availableTools;
         if (dropTarget instanceof DTree) {
-            availableTools.addAll(((DTree) dropTarget).getDescription().getDropTools());
+            availableTools = ((DTree) dropTarget).getDescription().getDropTools();
         } else if (dropTarget instanceof DTreeItem) {
-            availableTools.addAll(((DTreeItem) dropTarget).getActualMapping().getDropTools());
+            availableTools = ((DTreeItem) dropTarget).getActualMapping().getDropTools();
+        } else {
+            availableTools = Collections.emptyList();
         }
 
-        return Iterables.filter(availableTools, checkedDragSource);
+        return availableTools.stream().filter(checkedDragSource).collect(Collectors.toList());
     }
 
 }

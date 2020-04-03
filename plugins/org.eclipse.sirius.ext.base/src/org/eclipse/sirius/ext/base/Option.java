@@ -24,6 +24,7 @@ import java.text.MessageFormat;
  * @param <T>
  *            the type of the element to return.
  */
+@Deprecated
 public final class Option<T> {
 
     private T value;

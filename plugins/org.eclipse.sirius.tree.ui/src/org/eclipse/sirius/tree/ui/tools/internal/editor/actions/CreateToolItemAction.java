@@ -94,7 +94,6 @@ public class CreateToolItemAction extends AbstractToolItemAction {
                 if (semanticDescriptor != null) {
                     descriptor = semanticDescriptor;
                 }
-
             }
         }
 
@@ -150,11 +149,13 @@ public class CreateToolItemAction extends AbstractToolItemAction {
     @Override
     public boolean canExecute() {
         boolean canExecute = true;
-        if (getCreationTool() != null) {
-            if (getCreationTool().getFirstModelOperation() == null) {
+        TreeItemCreationTool creationTool = getCreationTool();
+        if (creationTool != null) {
+            if (creationTool.getFirstModelOperation() == null) {
                 canExecute = false;
             } else {
-                if (getCreationTool().getPrecondition() != null && !StringUtil.isEmpty(getCreationTool().getPrecondition().trim())) {
+                String precondition = creationTool.getPrecondition();
+                if (precondition != null && !StringUtil.isEmpty(precondition.trim())) {
                     IInterpreter interpreter = null;
                     try {
                         if (getTreeItem() != null) {
@@ -162,16 +163,16 @@ public class CreateToolItemAction extends AbstractToolItemAction {
                             interpreter.setVariable(IInterpreterSiriusVariables.ROOT, TreeHelper.getTree(getTreeItem()).getTarget());
                             interpreter.setVariable(IInterpreterSiriusVariables.ELEMENT, getTreeItem().getTarget());
                             interpreter.setVariable(IInterpreterSiriusVariables.CONTAINER, ((DTreeItemContainer) getTreeItem().eContainer()).getTarget());
-                            canExecute = interpreter.evaluateBoolean(getTreeItem().getTarget(), getCreationTool().getPrecondition());
+                            canExecute = interpreter.evaluateBoolean(getTreeItem().getTarget(), precondition);
                         } else {
                             interpreter = InterpreterUtil.getInterpreter(getTable().getTarget());
                             interpreter.setVariable(IInterpreterSiriusVariables.ROOT, getTable().getTarget());
                             interpreter.setVariable(IInterpreterSiriusVariables.ELEMENT, getTable().getTarget());
                             interpreter.setVariable(IInterpreterSiriusVariables.CONTAINER, null);
-                            canExecute = interpreter.evaluateBoolean(getTable().getTarget(), getCreationTool().getPrecondition());
+                            canExecute = interpreter.evaluateBoolean(getTable().getTarget(), precondition);
                         }
                     } catch (final EvaluationException e) {
-                        RuntimeLoggerManager.INSTANCE.error(getCreationTool(), ToolPackage.eINSTANCE.getAbstractToolDescription_Precondition(), e);
+                        RuntimeLoggerManager.INSTANCE.error(creationTool, ToolPackage.eINSTANCE.getAbstractToolDescription_Precondition(), e);
                     }
                     interpreter.unSetVariable(IInterpreterSiriusVariables.ROOT);
                     interpreter.unSetVariable(IInterpreterSiriusVariables.ELEMENT);

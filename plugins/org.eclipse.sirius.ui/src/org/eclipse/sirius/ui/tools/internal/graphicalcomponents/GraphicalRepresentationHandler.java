@@ -1117,6 +1117,10 @@ public class GraphicalRepresentationHandler implements SessionManagerListener {
         if (session != null && session.getTransactionalEditingDomain() != null) {
             session.getTransactionalEditingDomain().removeResourceSetListener(refreshViewerOnChangeResourceSetListener);
         }
+        if (this.deleteActionHandler != null) {
+            this.deleteActionHandler.dispose();
+            this.deleteActionHandler = null;
+        }
         session = null;
         treeViewer = null;
         manageSessionActionProvider = null;

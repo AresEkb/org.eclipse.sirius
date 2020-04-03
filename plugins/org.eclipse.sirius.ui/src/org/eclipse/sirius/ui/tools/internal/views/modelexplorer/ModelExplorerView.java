@@ -92,9 +92,6 @@ public class ModelExplorerView extends CommonNavigator implements IModelExplorer
      */
     private LockDecorationUpdater lockDecorationUpdater = new LockDecorationUpdater();
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void createPartControl(Composite aParent) {
         aParent.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -135,9 +132,6 @@ public class ModelExplorerView extends CommonNavigator implements IModelExplorer
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Object getAdapter(Class type) {
         Object result = null;
@@ -212,9 +206,6 @@ public class ModelExplorerView extends CommonNavigator implements IModelExplorer
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void saveState(IMemento aMemento) {
         super.saveState(aMemento);
@@ -227,9 +218,6 @@ public class ModelExplorerView extends CommonNavigator implements IModelExplorer
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void init(IViewSite site) throws PartInitException {
         super.init(site);
@@ -242,9 +230,6 @@ public class ModelExplorerView extends CommonNavigator implements IModelExplorer
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void init(IViewSite aSite, IMemento aMemento) throws PartInitException {
         super.init(aSite, aMemento);
@@ -258,31 +243,30 @@ public class ModelExplorerView extends CommonNavigator implements IModelExplorer
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void dispose() {
-
-        super.dispose();
-
         if (this.tabFolder != null) {
             this.tabFolder.dispose();
             this.tabFolder = null;
         }
 
-        tabItems.clear();
+        if (this.tabItems != null) {
+            this.tabItems.clear();
+            this.tabItems = null;
+        }
 
         for (ModelExplorerTabDescriptor tabDescriptor : ModelExplorerTabRegistry.getRegisteredExtensions()) {
             IModelExplorerTabExtension tab = tabDescriptor.getTabExtension();
-
             if (tab != null) {
                 tab.dispose();
             }
         }
 
-        lockDecorationUpdater.unregister();
-        lockDecorationUpdater = null;
+        if (lockDecorationUpdater != null) {
+            this.lockDecorationUpdater.unregister();
+            this.lockDecorationUpdater = null;
+        }
+        super.dispose();
     }
 
     /**
@@ -297,7 +281,6 @@ public class ModelExplorerView extends CommonNavigator implements IModelExplorer
         }
     }
 
-    /** TODO MCH comment */
     private class TabInfo {
         final String id;
 
@@ -313,11 +296,6 @@ public class ModelExplorerView extends CommonNavigator implements IModelExplorer
 
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.eclipse.ui.navigator.CommonNavigator#createCommonViewerObject(org.eclipse.swt.widgets.Composite)
-     */
     @Override
     protected CommonViewer createCommonViewerObject(Composite parent) {
         final FilteredCommonTree commonfilteredTree = new FilteredCommonTree(getViewSite().getId(), parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL, false);
